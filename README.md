@@ -1,5 +1,5 @@
 # Info PO project
-Dit is de *private* github page die we gebruiken tijdens ons ews.
+Dit is de *private* github page die we gebruiken tijdens ons informatica PO.
 
 ## Unity editor
 De Unity editor version die voor het project in *unity-project* staat is **2021.3.27f1**.
