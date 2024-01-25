@@ -14,3 +14,4 @@ Om de verschillende versies van de game te kunnen spelen, ga je niet naar de [re
     X - Crouch
     R - Reload
     G - Grenade
+    Shift - Sprint
