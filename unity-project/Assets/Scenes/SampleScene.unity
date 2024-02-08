@@ -3420,6 +3420,14 @@ PrefabInstance:
       propertyPath: maxNavmeshFindRange
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 1773200902107857199, guid: 8b65fafb152cb344c90663bfc5e143e9, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1773200902107857199, guid: 8b65fafb152cb344c90663bfc5e143e9, type: 3}
+      propertyPath: m_Materials.Array.data[1]
+      value: 
+      objectReference: {fileID: -3033667219593020291, guid: 3cc8229ec5087874bab329134e49814b, type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8b65fafb152cb344c90663bfc5e143e9, type: 3}
 --- !u!4 &3240804980859119363

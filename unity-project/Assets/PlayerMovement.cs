@@ -158,7 +158,13 @@ public class PlayerMovement : MonoBehaviour
 
         // zorg dat de drag nul is als de player niet op de grond staat
         if (grounded)
+        {
             rb.drag = groundDrag;
+            if(jumpsLeft < maxJumps)
+            {
+                jumpsLeft = (maxJumps - 1);
+            }
+        }
         else
             rb.drag = 0;
         
@@ -259,7 +265,7 @@ public class PlayerMovement : MonoBehaviour
             //zet readyToJump naar true of false afhankelijk van de omstandigheden
             CheckJump();
             
-            if(readyToJump){
+            if(jumpsLeft > 0){
                 Jump();
             }
 
@@ -501,17 +507,15 @@ public class PlayerMovement : MonoBehaviour
         //checkt of de speler op de grond staat
         if(grounded)
         {
-            jumpsLeft = maxJumps;
-            readyToJump = true;
-            exitingSlope = false;
+            if(maxJumps > jumpsLeft)
+            {
+                jumpsLeft = maxJumps;
+                exitingSlope = false;
+            }
+            
         }
-        if(jumpsLeft > 0)
+        else
         {
-            readyToJump = true;
-            exitingSlope = false;
-        }
-        else{
-            readyToJump = false;
             exitingSlope = false;
         }
     }
