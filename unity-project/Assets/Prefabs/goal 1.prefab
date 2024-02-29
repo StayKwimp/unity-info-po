@@ -97,11 +97,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7cc5b3886c468b736b443892772d3216, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthAddition: 50
+  healthAddition: 30
   healthRemoval: 50
   goalDamageTimer: 40
   objectType: goal1
-  countdownDisplayName: CountdownDisplay
+  countdownDisplayName: CountdownDisplay2
+  objectiveText: Objective 2
 --- !u!64 &-3076069084329799363
 MeshCollider:
   m_ObjectHideFlags: 0

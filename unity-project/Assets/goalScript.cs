@@ -15,6 +15,7 @@ public class goalScript : MonoBehaviour
 
     [Header("TMPro")]
     public string countdownDisplayName;
+    public string objectiveText;
     private TextMeshProUGUI countdownDisplay;
 
     private GameObject playerObj;
@@ -22,7 +23,7 @@ public class goalScript : MonoBehaviour
     private GameObject goalSpawner2;
 
     
-    // Start is called before the first frame update
+
     void Awake() {
         // playerObj = GameObject.Find("Player").GetComponent<PlayerMovement>();
     }
@@ -41,15 +42,14 @@ public class goalScript : MonoBehaviour
 
         float timeRemaining = goalDamageTimer - timePassed;
         if (countdownDisplay != null){
-            countdownDisplay.SetText($"Time remaining: {(int)timeRemaining}s");
+            countdownDisplay.SetText($"{objectiveText}: {(int)timeRemaining}s");
         }
     }
 
     public void OnCollisionEnter(Collision collision)
     {
-        if(objectType == "goal")
-        {
-            if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Player")) {
+            if(objectType == "goal")
             {
                 Debug.Log("itworks");
                 if(GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth < 200)
@@ -60,13 +60,11 @@ public class goalScript : MonoBehaviour
                 else{
                     GameObject.Find("GoalSpawner")?.GetComponent<goalSpawner>()?.SpawnGoal();
                 }
+                
             }
-        }
-        else if(objectType == "goal1")
-        {
-            Debug.Log("itworks");
-            if (collision.gameObject.CompareTag("Player"))
+            else if(objectType == "goal1")
             {
+                Debug.Log("itworks");
                 if(GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth < 200)
                 {
                     GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth += healthAddition;
@@ -75,9 +73,14 @@ public class goalScript : MonoBehaviour
                 else {
                     GameObject.Find("GoalSpawner2")?.GetComponent<goalSpawner>()?.SpawnGoal();
                 }
+                
             }
+
+            if (countdownDisplay != null){
+                countdownDisplay.SetText($"{objectiveText}: ** Clear **");
+            }
+            Destroy(gameObject);
         }
-        Destroy(gameObject);
     }
     
     void Lowermaxhealth()
@@ -93,6 +96,10 @@ public class goalScript : MonoBehaviour
             GameObject.Find("GoalSpawner2")?.GetComponent<goalSpawner>()?.SpawnGoal();
         }
         
+
+        if (countdownDisplay != null){
+            countdownDisplay.SetText($"{objectiveText}: ** Decayed **");
+        }
         Destroy(gameObject);
     }
 }
