@@ -4,12 +4,14 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using static PlayerGun;
+using System;
 
 public class PlayerMovement : MonoBehaviour
 {
     // hmm yes bewegen my beloved
     [Header("Definitions")]
     public Camera playerCam;
+    public LayerMask whatIsEnemy;
 
     [Header("Movement")]
     private float mvSpeed;
@@ -19,6 +21,9 @@ public class PlayerMovement : MonoBehaviour
     public float sprintSpeed;
     public float maxSprintSpeed;
     public float groundDrag;
+
+    // pas op, exponentieel!
+    public float walkNoise;
 
     [Header("Jumping")]
     public float jumpForce;
@@ -433,6 +438,26 @@ public class PlayerMovement : MonoBehaviour
         if (grounded) {
             // forcemode.force zorgt ervoor dat de kracht de hele tijd toegepast kan worden
             rb.AddForce(moveDirectionNormalized * mvSpeed * 10f, ForceMode.Force);
+
+            // zorg er voor dat je ook geluid maakt tijdens het lopen
+            // functie: 1.3^(snelheid - 6) + 1
+            var totalNoise = (Mathf.Pow(1.3f, rb.velocity.magnitude - 6) + 1) * walkNoise;
+            // maak nagenoeg geen geluid als je aan het crouchen bent
+            if (state == movementState.crouching) totalNoise = 1f;
+
+            if (totalNoise < 1f) totalNoise = 1f;
+
+
+            Collider[] enemiesWithinRange = Physics.OverlapSphere(transform.position, totalNoise, whatIsEnemy);
+            foreach (var enemyCollider in enemiesWithinRange) {
+                var vectorToCollider = transform.position - enemyCollider.GetComponent<Transform>().position;
+                var magnitudeToCollider = vectorToCollider.magnitude;
+
+                // des te beter de enemy kan horen, des te meer ze tot de maximum zitten van de noise level
+                if (magnitudeToCollider <= totalNoise * (enemyCollider.GetComponent<EnemyMovement>().hearingRange))
+                    enemyCollider.GetComponent<EnemyMovement>().HearedPlayer(transform.position);
+            }
+
         } else {
             // in de lucht worden krachten met airMultiplier vermenigvuldigd, wat ervoor kan
             // zorgen dat je langzamer je direction kan aanpassen (als airMultiplier < 1)

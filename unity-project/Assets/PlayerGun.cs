@@ -20,6 +20,8 @@ public class PlayerGun : MonoBehaviour
     public float timeBetweenShooting, spread, reloadTime, timeBetweenShots;
     public int magazineSize, bulletsPerTap;
     public bool allowButtonHold;
+    public float gunFireNoiseLevel;
+    public LayerMask whatIsEnemies;
 
     private int bulletsLeft, bulletsShot;
 
@@ -419,6 +421,20 @@ public class PlayerGun : MonoBehaviour
 
         // speel geluid af
         PlaySound("AK fire");
+
+
+        // zorg dat enemies binnen een bepaalde radius je opmerken
+        Collider[] enemiesWithinRange = Physics.OverlapSphere(transform.position, gunFireNoiseLevel, whatIsEnemies);
+        foreach (var enemyCollider in enemiesWithinRange) {
+            var vectorToCollider = transform.position - enemyCollider.GetComponent<Transform>().position;
+            var magnitudeToCollider = vectorToCollider.magnitude;
+            
+            UnityEngine.Debug.Log($"magnitudeToCollider = {magnitudeToCollider}, actual hearing range: {gunFireNoiseLevel * (enemyCollider.GetComponent<EnemyMovement>().hearingRange/10)}");
+
+            // des te beter de enemy kan horen, des te meer ze tot de maximum zitten van de noise level
+            if (magnitudeToCollider <= gunFireNoiseLevel * (enemyCollider.GetComponent<EnemyMovement>().hearingRange))
+                enemyCollider.GetComponent<EnemyMovement>().HearedPlayer(transform.position);
+        }
     }
 
 

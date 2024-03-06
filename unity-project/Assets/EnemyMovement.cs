@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-// using System.Numerics;
 using UnityEngine;
 using UnityEngine.AI;
 using static EnemyMovement;
 using static AudioManager;
+using System;
+using System.Numerics;
 
 
 public class EnemyMovement : MonoBehaviour
@@ -19,16 +20,16 @@ public class EnemyMovement : MonoBehaviour
 
 
     private bool shotByPlayer;
-    private Vector3 playerPosition;
+    private UnityEngine.Vector3 playerPosition;
 
 
     // patrolling state
     [Header("Patrolling State")]
-    public Vector3 walkPoint;
+    public UnityEngine.Vector3 walkPoint;
     bool walkPointSet;
     public float walkPointRange;
     public int maxWalkPointReachTime;
-    private int walkPointReachTimer = 0;
+    private float walkPointReachTimer = 0;
 
     
     // attacking state
@@ -43,9 +44,9 @@ public class EnemyMovement : MonoBehaviour
     public GameObject projectile;
     public float[] shootForceMul = {1, 1, 1};
     public Transform bulletSpawnpoint;
-    public Vector3 targetingPointOffset; // de y component moet negatief zijn als je wil dat hij omhoog richt en positief als je wil dat hij naar beneden richt.
+    public UnityEngine.Vector3 targetingPointOffset; // de y component moet negatief zijn als je wil dat hij omhoog richt en positief als je wil dat hij naar beneden richt.
 
-    private Vector3 bulletOrigin;
+    private UnityEngine.Vector3 bulletOrigin;
 
     [Header("Bullets")]
     public float spread; 
@@ -58,8 +59,8 @@ public class EnemyMovement : MonoBehaviour
     // states
     [Header("Sight/Attack Range")]
     public float leaveAttackingStateRange;
-    public float sightRange, attackRange;
-    public bool playerInSightRange, playerInAttackRange, playerInLeaveAttackRange;
+    public float sightRange, hearingRange, attackRange;
+    public bool playerInSightRange, playerInHearingRange, playerInAttackRange, playerInLeaveAttackRange;
     private bool attacking = false;
 
     [Header("Reticle Coloring")]
@@ -86,28 +87,33 @@ public class EnemyMovement : MonoBehaviour
         // check of de speler in de sight en attack range is
         playerInLeaveAttackRange = Physics.CheckSphere(transform.position, leaveAttackingStateRange, whatIsPlayer);
         playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
+        // playerInHearingRange = Physics.CheckSphere(transform.position, hearingRange, whatIsPlayer);
         playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
 
-        // Debug.Log($"playerInSightRange: {playerInSightRange}, playerInAttackRange: {playerInAttackRange}, playerInLeaveAttackRange: {playerInLeaveAttackRange}, attacking: {attacking}");
+        // UnityEngine.Debug.Log($"playerInSightRange: {playerInSightRange}, playerInHearingRange: {playerInHearingRange}, playerInAttackRange: {playerInAttackRange}, playerInLeaveAttackRange: {playerInLeaveAttackRange}, attacking: {attacking}");
 
         RaycastHit hit;
         bool hittable;
         // doe een raycast om te controleren of de speler daadwerkelijk in de line of sight van de mogus zit
 
-        Vector3 directionToPlayer = player.position - bulletSpawnpoint.position;
+        UnityEngine.Vector3 directionToPlayer = player.position - bulletSpawnpoint.position;
 
         if(Physics.Raycast(bulletSpawnpoint.position, directionToPlayer, out hit, sightRange))
         {
             // Debug.Log(hit.collider);
             hittable = hit.collider.CompareTag("Player");
+
+            // verander alleen als playerInSightRange al true is
+            // controleert of de mogus de player wel kan zien
+            if (playerInSightRange) playerInSightRange = hit.collider.CompareTag("Player");
+
         }
         else {
             hittable = false;
+            playerInSightRange = false;
             // Debug.Log("Raycast hit nothing");
         }
 
-        // debug
-        // Debug.DrawRay(bulletSpawnpoint.position, directionToPlayer, Color.blue, 6f);
 
 
 
@@ -125,7 +131,7 @@ public class EnemyMovement : MonoBehaviour
             Patrolling();
             attacking = false;
         }
-        else if (!playerInAttackRange && !playerInLeaveAttackRange && playerInSightRange) {
+        else if (!playerInAttackRange && !playerInLeaveAttackRange && (playerInSightRange)) {
             ChasePlayer();
         }
 
@@ -133,7 +139,7 @@ public class EnemyMovement : MonoBehaviour
             AttackPlayer();
             attacking = true;
         }
-        else if (playerInAttackRange && playerInSightRange && !hittable)
+        else if (playerInAttackRange && (playerInSightRange) && !hittable)
         {   
             ChasePlayer();
         }
@@ -152,6 +158,7 @@ public class EnemyMovement : MonoBehaviour
 
 
     private void Patrolling() {
+        // UnityEngine.Debug.Log("Patrolling");
         // als er geen punt is waar de enemy heen moet lopen, zoek er dan naar eentje
         if (!walkPointSet) {
             SearchForWalkPoint();
@@ -163,24 +170,25 @@ public class EnemyMovement : MonoBehaviour
 
 
         // controleer of je bij de destination bent aangekomen
-        Vector3 distanceToWalkPoint = transform.position - walkPoint;
+        UnityEngine.Vector3 distanceToWalkPoint = transform.position - walkPoint;
 
         if (distanceToWalkPoint.magnitude < 1f) walkPointSet = false;
 
 
 
         // als de enemy niet binnen een bepaalde tijd bij de walkpoint is, zoek dan een nieuwe walkpoint
-        walkPointReachTimer--;
+        walkPointReachTimer -= Time.deltaTime;
         if (walkPointReachTimer <= 0) walkPointSet = false;
     }
 
 
 
     private void GotoShotDirection() {
+        // UnityEngine.Debug.Log("GotoShotDirection");
         agent.SetDestination(playerPosition);
 
         // controleer of de mogus al bij de positie is aangekomen
-        Vector3 distanceToWalkPoint = transform.position - playerPosition;
+        UnityEngine.Vector3 distanceToWalkPoint = transform.position - playerPosition;
 
         // zo ja, dan wordt shotByPlayer uitgezet
         if (distanceToWalkPoint.magnitude < 1f) {
@@ -190,12 +198,25 @@ public class EnemyMovement : MonoBehaviour
     }
 
 
-    private void SearchForWalkPoint() {
-        // neem een willekeurige plek binnen een bepaalde range om heen te lopen
-        float randomZ = Random.Range(-walkPointRange, walkPointRange);
-        float randomX = Random.Range(-walkPointRange, walkPointRange);
+    // deze functie wordt uitgevoerd in PlayerMovement, PlayerGun, PlayerGrenade, MogusExplosiveBullet en EnemyMovement
+    // het zorgt dat enemies op geluiden van geweerschoten en granaten af gaan
+    public void HearedPlayer(UnityEngine.Vector3 gotoPosition) {
+        UnityEngine.Debug.Log("HearedPlayer");
 
-        walkPoint = new Vector3(transform.position.x + randomX, transform.position.y, transform.position.z + randomZ);
+        agent.SetDestination(gotoPosition);
+        walkPoint = gotoPosition;
+        walkPointSet = true;
+        walkPointReachTimer = 60f;
+    }
+
+
+    private void SearchForWalkPoint() {
+        // UnityEngine.Debug.Log("SearchForWalkPoint");
+        // neem een willekeurige plek binnen een bepaalde range om heen te lopen
+        float randomZ = UnityEngine.Random.Range(-walkPointRange, walkPointRange);
+        float randomX = UnityEngine.Random.Range(-walkPointRange, walkPointRange);
+
+        walkPoint = new UnityEngine.Vector3(transform.position.x + randomX, transform.position.y, transform.position.z + randomZ);
 
         // controleer of walkpoint binnen de map is
         if (Physics.Raycast(walkPoint, -transform.up, 2f, whatIsGround)) walkPointSet = true;
@@ -205,10 +226,16 @@ public class EnemyMovement : MonoBehaviour
 
 
     private void ChasePlayer() {
+        // UnityEngine.Debug.Log("ChasePlayer");
         // if (shotByPlayer) UnityEngine.Debug.LogWarning("Cancelled shotByPlayer at ChasePlayer");
         shotByPlayer = false;
         // loop naar de speler toe
         agent.SetDestination(player.position);
+
+        // voor als de mogus weer naar de patrolling state gaat
+        walkPoint = player.position;
+        walkPointSet = true;
+        walkPointReachTimer = 60f;
     }
 
 
@@ -229,6 +256,7 @@ public class EnemyMovement : MonoBehaviour
 
 
     private void AttackPlayer() {
+        // UnityEngine.Debug.Log("AttackPlayer");
         // if (shotByPlayer) UnityEngine.Debug.LogWarning("Cancelled shotByPlayer at AttackPlayer");
         shotByPlayer = false;
 
@@ -240,7 +268,7 @@ public class EnemyMovement : MonoBehaviour
         // LookAt neemt de twee verschillende positions van de Vector3 en de transform,
         // en returnt daartussen een rotation waarop de enemy naar de speler kijkt.
         // dit doen we niet voor de y rotation (want die is in playerXZPos en transform hetzelfde, dus nul)
-        var playerXZPos = new Vector3(player.position.x, transform.position.y, player.position.z);
+        var playerXZPos = new UnityEngine.Vector3(player.position.x, transform.position.y, player.position.z);
         transform.LookAt(playerXZPos);
 
 
@@ -254,6 +282,12 @@ public class EnemyMovement : MonoBehaviour
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttacks);
         }
+
+
+        // voor als de mogus weer naar de patrolling state gaat
+        walkPoint = player.position;
+        walkPointSet = true;
+        walkPointReachTimer = 60;
     }
 
 
@@ -264,8 +298,8 @@ public class EnemyMovement : MonoBehaviour
         // Vector3 bulletOriginPosition = transform.position + transform.TransformDirection(bulletOrigin);
 
         var rb = Instantiate(projectile, bulletOrigin, transform.rotation).GetComponent<Rigidbody>();
-        Vector3 distanceToPlayer = player.position - bulletOrigin;
-        Vector3 shootForce = new Vector3(distanceToPlayer.x * shootForceMul[0], distanceToPlayer.y * shootForceMul[1] + 5f, distanceToPlayer.z * shootForceMul[2]);
+        UnityEngine.Vector3 distanceToPlayer = player.position - bulletOrigin;
+        UnityEngine.Vector3 shootForce = new UnityEngine.Vector3(distanceToPlayer.x * shootForceMul[0], distanceToPlayer.y * shootForceMul[1] + 5f, distanceToPlayer.z * shootForceMul[2]);
 
 
 
@@ -287,11 +321,11 @@ public class EnemyMovement : MonoBehaviour
 
         // Debug.Log(distanceToPlayer.magnitude);
         
-        var aimingPosition = player.position + targetingPointOffset + new Vector3(playerVelocity.x * multiplierXZ, playerVelocity.y * multiplierY, playerVelocity.z * multiplierXZ);
-        // var aimingPosition = player.position + targetingPointOffset + new Vector3(playerVelocity.x * playerMovementAdjustment[0], playerVelocity.y * playerMovementAdjustment[1], playerVelocity.z * playerMovementAdjustment[0]);
+        var aimingPosition = player.position + targetingPointOffset + new UnityEngine.Vector3(playerVelocity.x * multiplierXZ, playerVelocity.y * multiplierY, playerVelocity.z * multiplierXZ);
+        // var aimingPosition = player.position + targetingPointOffset + new UnityEngine.Vector3(playerVelocity.x * playerMovementAdjustment[0], playerVelocity.y * playerMovementAdjustment[1], playerVelocity.z * playerMovementAdjustment[0]);
 
         // vector AB = position B - position A
-        Vector3 directionWithoutSpread = aimingPosition - bulletOrigin;
+        UnityEngine.Vector3 directionWithoutSpread = aimingPosition - bulletOrigin;
 
 
         UnityEngine.Debug.DrawLine(bulletOrigin, aimingPosition, Color.green, 2f);
@@ -299,15 +333,15 @@ public class EnemyMovement : MonoBehaviour
         
 
         // bullet spread toevoegen
-        float xSpread = Random.Range(-spread, spread);
-        float ySpread = Random.Range(-spread, spread);
+        float xSpread = UnityEngine.Random.Range(-spread, spread);
+        float ySpread = UnityEngine.Random.Range(-spread, spread);
 
 
-        Vector3 directionWithSpread = directionWithoutSpread + new Vector3(xSpread, ySpread, 0f);
+        UnityEngine.Vector3 directionWithSpread = directionWithoutSpread + new UnityEngine.Vector3(xSpread, ySpread, 0f);
 
 
         // bullet spawnen
-        GameObject currentBullet = Instantiate(projectile, bulletOrigin, Quaternion.identity);
+        GameObject currentBullet = Instantiate(projectile, bulletOrigin, UnityEngine.Quaternion.identity);
         
         // draai de bullet
         currentBullet.transform.forward = directionWithSpread.normalized;
@@ -318,7 +352,7 @@ public class EnemyMovement : MonoBehaviour
 
         // muzzle flash
         if (muzzleFlash != null) {
-            Instantiate(muzzleFlash, bulletOrigin, Quaternion.identity);
+            Instantiate(muzzleFlash, bulletOrigin, UnityEngine.Quaternion.identity);
         }
 
 

@@ -72,7 +72,7 @@ MonoBehaviour:
   health: 60
   walkPoint: {x: 0, y: 0, z: 0}
   walkPointRange: 5
-  maxWalkPointReachTime: 240
+  maxWalkPointReachTime: 4
   timeBetweenAttacks: 1.5
   attackType: 1
   ChaseDelay: 1
@@ -91,9 +91,11 @@ MonoBehaviour:
   muzzleFlash: {fileID: 0}
   bulletMaxTime: 0
   leaveAttackingStateRange: 23
-  sightRange: 35
+  sightRange: 32
+  hearingRange: 1
   attackRange: 20
   playerInSightRange: 0
+  playerInHearingRange: 0
   playerInAttackRange: 0
   playerInLeaveAttackRange: 0
   reticleGameObject: {fileID: 8424799368891404047, guid: d9b98cd157b482305883be04bb4a6062, type: 3}
