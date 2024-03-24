@@ -15,6 +15,7 @@ public class MogusExplosiveBullet : MonoBehaviour
     [Range(0f, 1f)]
     public float bounciness;
     public bool useGravity;
+    public float loudness;
 
     [Header("Bullet stats")]
     public int explosionDamage;
@@ -98,6 +99,18 @@ public class MogusExplosiveBullet : MonoBehaviour
 
 
             alreadyExploding = true;
+
+
+            // zorg dat de enemies naar het geluid van de grenade toe gaan
+            Collider[] enemiesWithinRange = Physics.OverlapSphere(transform.position, loudness, whatIsEnemies);
+            foreach (var enemyCollider in enemiesWithinRange) {
+                var vectorToCollider = transform.position - enemyCollider.GetComponent<Transform>().position;
+                var magnitudeToCollider = vectorToCollider.magnitude;
+
+                // des te beter de enemy kan horen, des te meer ze tot de maximum zitten van de noise level
+                if (magnitudeToCollider <= loudness * (enemyCollider.GetComponent<EnemyMovement>().hearingRange))
+                    enemyCollider.GetComponent<EnemyMovement>().HearedPlayer(transform.position);
+            }
 
             // sloop de bullet wat later om bugs te voorkomen
             Invoke("DestroyBullet", 0.05f);

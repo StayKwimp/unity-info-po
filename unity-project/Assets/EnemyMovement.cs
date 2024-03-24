@@ -14,7 +14,7 @@ public class EnemyMovement : MonoBehaviour
     [Header("Definitions")]
     public NavMeshAgent agent;
     public Transform player;
-    public LayerMask whatIsGround, whatIsPlayer;
+    public LayerMask whatIsGround, whatIsPlayer, whatIsEnemies;
     public int health;
     
 
@@ -45,6 +45,7 @@ public class EnemyMovement : MonoBehaviour
     public float[] shootForceMul = {1, 1, 1};
     public Transform bulletSpawnpoint;
     public UnityEngine.Vector3 targetingPointOffset; // de y component moet negatief zijn als je wil dat hij omhoog richt en positief als je wil dat hij naar beneden richt.
+    public float bulletLoudness;
 
     private UnityEngine.Vector3 bulletOrigin;
 
@@ -198,7 +199,7 @@ public class EnemyMovement : MonoBehaviour
     }
 
 
-    // deze functie wordt uitgevoerd in PlayerMovement, PlayerGun, PlayerGrenade, MogusExplosiveBullet en EnemyMovement
+    // deze functie wordt uitgevoerd in PlayerMovement, PlayerGun, PlayerGrenade, MogusExplosiveBullet en EnemyMovement (in de gun functie)
     // het zorgt dat enemies op geluiden van geweerschoten en granaten af gaan
     public void HearedPlayer(UnityEngine.Vector3 gotoPosition) {
         UnityEngine.Debug.Log("HearedPlayer");
@@ -328,7 +329,7 @@ public class EnemyMovement : MonoBehaviour
         UnityEngine.Vector3 directionWithoutSpread = aimingPosition - bulletOrigin;
 
 
-        UnityEngine.Debug.DrawLine(bulletOrigin, aimingPosition, Color.green, 2f);
+        // UnityEngine.Debug.DrawLine(bulletOrigin, aimingPosition, Color.green, 2f);
 
         
 
@@ -358,6 +359,20 @@ public class EnemyMovement : MonoBehaviour
 
 
         alreadyAttacked = true;
+
+
+        // zorg dat andere enemies attracted worden tot het geluid van de gun
+        Collider[] enemiesWithinRange = Physics.OverlapSphere(transform.position, bulletLoudness, whatIsEnemies);
+        foreach (var enemyCollider in enemiesWithinRange) {
+            var vectorToCollider = transform.position - enemyCollider.GetComponent<Transform>().position;
+            var magnitudeToCollider = vectorToCollider.magnitude;
+
+            // des te beter de enemy kan horen, des te meer ze tot de maximum zitten van de noise level
+            if (magnitudeToCollider <= bulletLoudness * (enemyCollider.GetComponent<EnemyMovement>().hearingRange))
+                enemyCollider.GetComponent<EnemyMovement>().HearedPlayer(transform.position);
+        }
+
+
         Invoke(nameof(ResetAttack), timeBetweenAttacks);
     }
 

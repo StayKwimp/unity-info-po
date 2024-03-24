@@ -147,6 +147,7 @@ MonoBehaviour:
   highDamageExplosionRange: 3
   explosionRange: 5
   explosionForce: 12
+  loudness: 60
   explodeOnTouch: 0
 --- !u!96 &2331130529846871363
 TrailRenderer:

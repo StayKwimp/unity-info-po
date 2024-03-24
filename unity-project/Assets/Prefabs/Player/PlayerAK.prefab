@@ -88,6 +88,10 @@ MonoBehaviour:
   magazineSize: 45
   bulletsPerTap: 1
   allowButtonHold: 1
+  gunFireNoiseLevel: 0
+  whatIsEnemies:
+    serializedVersion: 2
+    m_Bits: 256
   reloading: 0
   playerCam: {fileID: 5668736574664237771, guid: de074e07dab4c9446a6454dd368907b1, type: 3}
   camerasForRecoil: []

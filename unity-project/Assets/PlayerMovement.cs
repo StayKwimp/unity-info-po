@@ -68,6 +68,13 @@ public class PlayerMovement : MonoBehaviour
     private RaycastHit slopeHit;
     private bool exitingSlope;
 
+    [Header("Ladder Handling")]
+    public LayerMask whatIsLadder;
+    public float ladderSpeedMultiplier;
+    public float maxSpeedOnLadderMultiplier;
+    private RaycastHit ladderHit;
+    private bool exitingLadder;
+
     [Header("Wall Handling")]
     private RaycastHit wallHit;
     private Vector3 wallVector = Vector3.zero;
@@ -126,7 +133,8 @@ public class PlayerMovement : MonoBehaviour
         walking,
         sprinting,
         crouching,
-        air
+        air,
+        ladder
     }
 
    
@@ -152,6 +160,9 @@ public class PlayerMovement : MonoBehaviour
         // de layermask whatIsGround wordt gebruikt in unity om te kijken welke objects allemaal als
         // grond gezien worden en welke niet
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
+
+        // if grounded is false, check if the player is maybe on a ladder
+        if (!grounded) grounded = Physics.Raycast(transform.position, Vector3.down + moveDirection.normalized, playerHeight * 0.5f + 2f, whatIsLadder);
 
 
         MyInput();
@@ -246,6 +257,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void FixedUpdate() {
+        UnityEngine.Debug.Log($"OnLadder: {OnLadder()}");
         MovePlayer();
 
         // get current movement speed
@@ -405,7 +417,7 @@ public class PlayerMovement : MonoBehaviour
         moveDirectionNormalized.y = moveDirection.normalized.y + wallVector.y;
 
 
-        
+        // 1 of -1 = true of false
         if (Mathf.Sign(moveDirection.normalized.x) == Mathf.Sign(wallVector.x)) moveDirectionNormalized.x = moveDirection.normalized.x;
         if (Mathf.Sign(moveDirection.normalized.z) == Mathf.Sign(wallVector.z)) moveDirectionNormalized.z = moveDirection.normalized.z;
         
@@ -426,6 +438,16 @@ public class PlayerMovement : MonoBehaviour
                 rb.AddForce(Vector3.down * 80f, ForceMode.Force);
             
             
+            
+        }
+
+
+        if (OnLadder() && !exitingLadder) {
+            rb.AddForce(GetLadderMoveDirection() * mvSpeed * ladderSpeedMultiplier, ForceMode.Force);
+
+
+            if (rb.velocity.y != 0)
+                rb.AddForce(Vector3.down * 80f, ForceMode.Force);
         }
 
 
@@ -433,6 +455,9 @@ public class PlayerMovement : MonoBehaviour
         // dit is geen probleem, want als je van de slope af gaat wordt de zwaartekracht
         // weer aangezet
         rb.useGravity = !OnSlope();
+
+        // als de gravity nog true is, is de player niet op een slope. 
+        if (rb.useGravity) rb.useGravity = !OnLadder();
 
 
         if (grounded) {
@@ -445,6 +470,7 @@ public class PlayerMovement : MonoBehaviour
             // maak nagenoeg geen geluid als je aan het crouchen bent
             if (state == movementState.crouching) totalNoise = 1f;
 
+            // kekke failsafe
             if (totalNoise < 1f) totalNoise = 1f;
 
 
@@ -472,10 +498,18 @@ public class PlayerMovement : MonoBehaviour
         if (OnSlope() && !exitingSlope) {
             if (rb.velocity.magnitude > maxSpeed * maxSpeedOnSlopeMultiplier)
                 rb.velocity = rb.velocity.normalized * maxSpeed * maxSpeedOnSlopeMultiplier;
+        }
+        
+
+        // limit speed on ladder
+        else if (OnLadder() && !exitingLadder) {
+            if (rb.velocity.magnitude > maxSpeed * maxSpeedOnLadderMultiplier)
+                rb.velocity = rb.velocity.normalized * maxSpeed * maxSpeedOnLadderMultiplier;
+        }
             
 
         // limit speed on ground/air
-        } else {
+        else {
             
 
             var ADSEnabled = playerGunScr.ADSEnabled;
@@ -509,6 +543,7 @@ public class PlayerMovement : MonoBehaviour
     private void Jump() {
         jumpsLeft -= 1;
         exitingSlope = true;
+        exitingLadder = true;
         // reset y velocity
         // hierdoor spring je altijd even hoog
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
@@ -529,15 +564,18 @@ public class PlayerMovement : MonoBehaviour
             jumpsLeft = maxJumps;
             readyToJump = true;
             exitingSlope = false;
+            exitingLadder = false;
         }
         if(jumpsLeft > 0)
         {
             readyToJump = true;
             exitingSlope = false;
+            exitingLadder = false;
         }
         else{
             readyToJump = false;
             exitingSlope = false;
+            exitingLadder = false;
         }
     }
 
@@ -598,6 +636,18 @@ public class PlayerMovement : MonoBehaviour
         }
 
         return false;
+    }
+
+
+    private bool OnLadder() {
+        // controleert of de speler op een ladder zit, met een grotere raycast als degene in OnSlope()
+        return Physics.Raycast(transform.position, Vector3.down + moveDirection.normalized, out ladderHit, playerHeight * 0.5f + 2f, whatIsLadder);
+    }
+
+
+    private Vector3 GetLadderMoveDirection() {
+        // hiermee wordt de move direction parallel gezet aan de slope angle
+        return Vector3.ProjectOnPlane(moveDirection, ladderHit.normal).normalized;
     }
 
 

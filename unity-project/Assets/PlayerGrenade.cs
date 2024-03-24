@@ -25,6 +25,7 @@ public class PlayerGrenade : MonoBehaviour
     public float highDamageExplosionRange;
     public float explosionRange;
     public float explosionForce;
+    public float loudness;
 
     public bool explodeOnTouch = false;
 
@@ -134,6 +135,20 @@ public class PlayerGrenade : MonoBehaviour
 
 
             alreadyExploding = true;
+
+
+            // zorg dat de enemies gaan naar het geluid van de grenade
+
+            Collider[] enemiesWithinRange = Physics.OverlapSphere(transform.position, loudness, whatIsEnemies);
+            foreach (var enemyCollider in enemiesWithinRange) {
+                var vectorToCollider = transform.position - enemyCollider.GetComponent<Transform>().position;
+                var magnitudeToCollider = vectorToCollider.magnitude;
+
+                // des te beter de enemy kan horen, des te meer ze tot de maximum zitten van de noise level
+                if (magnitudeToCollider <= loudness * (enemyCollider.GetComponent<EnemyMovement>().hearingRange))
+                    enemyCollider.GetComponent<EnemyMovement>().HearedPlayer(transform.position);
+            }
+
 
             // sloop de bullet wat later om bugs te voorkomen
             Invoke("DestroyGrenade", 0.05f);

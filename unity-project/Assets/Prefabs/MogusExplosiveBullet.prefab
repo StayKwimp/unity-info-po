@@ -138,6 +138,7 @@ MonoBehaviour:
     m_Bits: 512
   bounciness: 0.8
   useGravity: 1
+  loudness: 30
   explosionDamage: 40
   explosionRange: 3
   explosionForce: 1200

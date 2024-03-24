@@ -357,6 +357,9 @@ MonoBehaviour:
   whatIsPlayer:
     serializedVersion: 2
     m_Bits: 512
+  whatIsEnemies:
+    serializedVersion: 2
+    m_Bits: 256
   health: 60
   walkPoint: {x: 0, y: 0, z: 0}
   walkPointRange: 5
@@ -371,6 +374,7 @@ MonoBehaviour:
   - 1
   bulletSpawnpoint: {fileID: 74771138203760320}
   targetingPointOffset: {x: 0, y: -0.2, z: 0}
+  bulletLoudness: 25
   spread: 0.7
   bulletShootForceMul: 40
   playerMovementAdjustment:
