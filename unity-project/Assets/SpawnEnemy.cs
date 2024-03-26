@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -68,5 +69,7 @@ public class SpawnEnemy : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, maxNavmeshFindRange);
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, maxSpawnRadius);
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, minPlayerDistance);
     }
 }

@@ -22,6 +22,10 @@ public class goalScript : MonoBehaviour
     private GameObject goalSpawner1;
     private GameObject goalSpawner2;
 
+    [Header("Enemy Spawning")]
+    public string enemySpawnerMasterName;
+    public int newSpawnerIndex;
+
     
 
     void Awake() {
@@ -51,10 +55,14 @@ public class goalScript : MonoBehaviour
         if (collision.gameObject.CompareTag("Player")) {
             if(objectType == "goal")
             {
-                Debug.Log("itworks");
+                // Debug.Log("itworks");
+
+
+
                 if(GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth < 200)
                 {
                     GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth += healthAddition;
+                    if (GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth > 200) GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth = 200;
                     GameObject.Find("GoalSpawner")?.GetComponent<goalSpawner>()?.SpawnGoal();
                 }
                 else{
@@ -64,10 +72,15 @@ public class goalScript : MonoBehaviour
             }
             else if(objectType == "goal1")
             {
-                Debug.Log("itworks");
+                // Debug.Log("itworks");
+
+
+
+
                 if(GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth < 200)
                 {
                     GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth += healthAddition;
+                    if (GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth > 200) GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth = 200;
                     GameObject.Find("GoalSpawner2")?.GetComponent<goalSpawner>()?.SpawnGoal();
                 }
                 else {
@@ -79,13 +92,22 @@ public class goalScript : MonoBehaviour
             if (countdownDisplay != null){
                 countdownDisplay.SetText($"{objectiveText}: ** Clear **");
             }
+
+
+            // change SubspawnerIndex of the enemy spawn controller
+            GameObject.Find(enemySpawnerMasterName).GetComponent<NewEnemySpawnController>().activeSubspawnerIndex = newSpawnerIndex;
+
+
+
             Destroy(gameObject);
         }
     }
     
     void Lowermaxhealth()
     {
-        Debug.Log("lowermaxhealth runs");
+        // Debug.Log("lowermaxhealth runs");
+
+
         GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth -= healthRemoval;
         if(objectType == "goal")
         {

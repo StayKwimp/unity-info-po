@@ -257,7 +257,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void FixedUpdate() {
-        UnityEngine.Debug.Log($"OnLadder: {OnLadder()}");
+        // UnityEngine.Debug.Log($"OnLadder: {OnLadder()}");
         MovePlayer();
 
         // get current movement speed

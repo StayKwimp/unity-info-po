@@ -19,7 +19,6 @@ public class EnemyMovement : MonoBehaviour
     
 
 
-    private bool shotByPlayer;
     private UnityEngine.Vector3 playerPosition;
 
 
@@ -72,6 +71,8 @@ public class EnemyMovement : MonoBehaviour
 
 
     private AudioManager audioManager;
+
+    private float zeroVelocityTime = 0f;
     
 
     private void Awake() {
@@ -92,6 +93,8 @@ public class EnemyMovement : MonoBehaviour
         playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
 
         // UnityEngine.Debug.Log($"playerInSightRange: {playerInSightRange}, playerInHearingRange: {playerInHearingRange}, playerInAttackRange: {playerInAttackRange}, playerInLeaveAttackRange: {playerInLeaveAttackRange}, attacking: {attacking}");
+
+        
 
         RaycastHit hit;
         bool hittable;
@@ -117,7 +120,7 @@ public class EnemyMovement : MonoBehaviour
 
 
 
-
+        // UnityEngine.Debug.Log($"walkPoint: {walkPoint}, walkPointSet: {walkPointSet}, walkPointReachTimer: {walkPointReachTimer}");
 
 
 
@@ -128,7 +131,7 @@ public class EnemyMovement : MonoBehaviour
             if (!hittable) attacking = false;  
         }
 
-        if (!playerInSightRange && !shotByPlayer) {
+        if (!playerInSightRange) {
             Patrolling();
             attacking = false;
         }
@@ -143,12 +146,6 @@ public class EnemyMovement : MonoBehaviour
         else if (playerInAttackRange && (playerInSightRange) && !hittable)
         {   
             ChasePlayer();
-        }
-
-
-        if (shotByPlayer) {
-            // UnityEngine.Debug.Log("Going towards player shot position");
-            GotoShotDirection();
         }
         
     }
@@ -167,7 +164,7 @@ public class EnemyMovement : MonoBehaviour
         }
 
         // als dat wel zo is, loop er heen
-        else agent.SetDestination(walkPoint);
+        agent.SetDestination(walkPoint);
 
 
         // controleer of je bij de destination bent aangekomen
@@ -180,34 +177,50 @@ public class EnemyMovement : MonoBehaviour
         // als de enemy niet binnen een bepaalde tijd bij de walkpoint is, zoek dan een nieuwe walkpoint
         walkPointReachTimer -= Time.deltaTime;
         if (walkPointReachTimer <= 0) walkPointSet = false;
+        
+
+        // zorg dat de enemy naar een corner gaat als hij te lang stilstaat (dus naar een muur ofzo)
+        // (dit vanwege een of andere bug waarbij de enemy agent stil gaat staan wanneer hij naar een navmesh moet gaan die geen directe verbinding heeft met de navmesh waar hij op staat)
+        if (agent.velocity.magnitude <= 1f) zeroVelocityTime += Time.deltaTime;
+        else zeroVelocityTime = 0f;
+
+        // als hij meer dan een halve seconde nagenoeg stilstaat
+        if (zeroVelocityTime >= 0.5f) {
+            // find the closest edge of a navmesh
+            NavMeshHit closestEdge;
+            agent.FindClosestEdge(out closestEdge);
+            
+            // set a new walkpoint
+            walkPoint = closestEdge.position;
+            walkPointSet = true;
+            walkPointReachTimer = maxWalkPointReachTime * 3f;
+
+            // reset timer
+            zeroVelocityTime = 0f;
+        }
     }
 
 
 
     private void GotoShotDirection() {
         // UnityEngine.Debug.Log("GotoShotDirection");
+
         agent.SetDestination(playerPosition);
-
-        // controleer of de mogus al bij de positie is aangekomen
-        UnityEngine.Vector3 distanceToWalkPoint = transform.position - playerPosition;
-
-        // zo ja, dan wordt shotByPlayer uitgezet
-        if (distanceToWalkPoint.magnitude < 1f) {
-            // UnityEngine.Debug.LogWarning("Canceled shotByPlayer at GotoShotDirection (mogus reached its end point)");
-            shotByPlayer = false;
-        }
+        walkPoint = playerPosition;
+        walkPointReachTimer = maxWalkPointReachTime * 7f;
+        walkPointSet = true;
     }
 
 
     // deze functie wordt uitgevoerd in PlayerMovement, PlayerGun, PlayerGrenade, MogusExplosiveBullet en EnemyMovement (in de gun functie)
     // het zorgt dat enemies op geluiden van geweerschoten en granaten af gaan
     public void HearedPlayer(UnityEngine.Vector3 gotoPosition) {
-        UnityEngine.Debug.Log("HearedPlayer");
+        // UnityEngine.Debug.Log("HearedPlayer");
 
         agent.SetDestination(gotoPosition);
         walkPoint = gotoPosition;
         walkPointSet = true;
-        walkPointReachTimer = 60f;
+        walkPointReachTimer = maxWalkPointReachTime * 7f;
     }
 
 
@@ -228,15 +241,13 @@ public class EnemyMovement : MonoBehaviour
 
     private void ChasePlayer() {
         // UnityEngine.Debug.Log("ChasePlayer");
-        // if (shotByPlayer) UnityEngine.Debug.LogWarning("Cancelled shotByPlayer at ChasePlayer");
-        shotByPlayer = false;
         // loop naar de speler toe
         agent.SetDestination(player.position);
 
         // voor als de mogus weer naar de patrolling state gaat
         walkPoint = player.position;
         walkPointSet = true;
-        walkPointReachTimer = 60f;
+        walkPointReachTimer = maxWalkPointReachTime * 3f;
     }
 
 
@@ -258,8 +269,6 @@ public class EnemyMovement : MonoBehaviour
 
     private void AttackPlayer() {
         // UnityEngine.Debug.Log("AttackPlayer");
-        // if (shotByPlayer) UnityEngine.Debug.LogWarning("Cancelled shotByPlayer at AttackPlayer");
-        shotByPlayer = false;
 
         StartCoroutine(DelayChase());
 
@@ -288,7 +297,7 @@ public class EnemyMovement : MonoBehaviour
         // voor als de mogus weer naar de patrolling state gaat
         walkPoint = player.position;
         walkPointSet = true;
-        walkPointReachTimer = 60;
+        walkPointReachTimer = maxWalkPointReachTime * 3f;
     }
 
 
@@ -393,8 +402,9 @@ public class EnemyMovement : MonoBehaviour
         if (health <= 0) Invoke("DestroyEnemy", 0.05f);
 
         // zorg dat de mogus in de richting gaat van waar hij beschoten was
-        shotByPlayer = true;
-        playerPosition = player.position;
+        playerPosition = new UnityEngine.Vector3(player.position.x, player.position.y, player.position.z);
+
+        GotoShotDirection();
 
         
         // speelt als het goed is geluid af
@@ -403,14 +413,15 @@ public class EnemyMovement : MonoBehaviour
     }
 
     private void DestroyEnemy() {
-        if (GameObject.Find("Player").GetComponent<PlayerMovement>().health <= GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth)
+        var playerVariables = GameObject.Find("Player").GetComponent<PlayerMovement>();
+        if (playerVariables.health <= playerVariables.maxHealth)
         {
-            GameObject.Find("Player").GetComponent<PlayerMovement>().health += healthBoost;
+            playerVariables.health += healthBoost;
         }
         Destroy(gameObject);
 
         // voeg een kill toe
-        GameObject.Find("Player").GetComponent<PlayerMovement>().kills += 1;
+        playerVariables.kills += 1;
 
         // flash de reticle
         reticleGameObject.GetComponent<ReticleColor>().FlashReticleColor();

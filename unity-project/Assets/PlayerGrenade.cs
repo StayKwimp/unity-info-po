@@ -161,6 +161,17 @@ public class PlayerGrenade : MonoBehaviour
     }
 
 
+    // explode wanneer het een enemy aanraakt
+    private void OnCollisionEnter(Collision collision) {
+        UnityEngine.Debug.Log("collision");
+        if (collision.collider.CompareTag("Enemy")) {
+            UnityEngine.Debug.Log("collision with enemy");
+            Explode();
+        }
+    }
+
+
+
     public void DestroyGrenade() {
         Destroy(gameObject);
     }

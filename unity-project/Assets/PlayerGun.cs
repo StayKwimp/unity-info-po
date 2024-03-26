@@ -238,7 +238,7 @@ public class PlayerGun : MonoBehaviour
             transform.localPosition += gunGrenadeSwitchDirection * (Time.deltaTime / switchGunPosAnimationTime);
             allowEndGrenadeAnimation = true;
         } else if (allowEndGrenadeAnimation) {
-            Debug.Log("Ended Grenade Animation");
+            // Debug.Log("Ended Grenade Animation");
 
             movingGun = false;
             // zet de gun op de correcte positie als de animatie afgelopen is
@@ -269,7 +269,7 @@ public class PlayerGun : MonoBehaviour
         } else if (!noADSAnimation) {
             // als de animatie afgelopen is, zorg dan dat de gun voor één keer op de goede plek wordt gezet
             if (allowEndADSAnimation) {
-                Debug.Log("Ended ADS Animation");
+                // Debug.Log("Ended ADS Animation");
                 // zet de gun (en de fov) op de correcte positie als de animatie afgelopen is
                 movingGun = false;
                 if (ADSEnabled) {
