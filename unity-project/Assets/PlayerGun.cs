@@ -336,18 +336,21 @@ public class PlayerGun : MonoBehaviour
         // bullet spread
         float xSpread = 0f;
         float ySpread = 0f;
+        float zSpread = 0f;
         if (ADSEnabled) {
             // gebruik een andere spread bij ADS
             xSpread = UnityEngine.Random.Range(-spreadOnADS, spreadOnADS);
             ySpread = UnityEngine.Random.Range(-spreadOnADS, spreadOnADS);
+            zSpread = UnityEngine.Random.Range(-spreadOnADS, spreadOnADS);
         } else {
             xSpread = UnityEngine.Random.Range(-spread, spread);
             ySpread = UnityEngine.Random.Range(-spread, spread);
+            zSpread = UnityEngine.Random.Range(-spread, spread);
         }
 
 
         // nieuwe direction met spread
-        Vector3 totalSpread = new Vector3(xSpread, ySpread, 0);
+        Vector3 totalSpread = new Vector3(xSpread, ySpread, zSpread);
         Vector3 directionWithSpread = directionWithoutSpread + totalSpread;
 
 
@@ -429,7 +432,7 @@ public class PlayerGun : MonoBehaviour
             var vectorToCollider = transform.position - enemyCollider.GetComponent<Transform>().position;
             var magnitudeToCollider = vectorToCollider.magnitude;
             
-            UnityEngine.Debug.Log($"magnitudeToCollider = {magnitudeToCollider}, actual hearing range: {gunFireNoiseLevel * (enemyCollider.GetComponent<EnemyMovement>().hearingRange/10)}");
+            // UnityEngine.Debug.Log($"magnitudeToCollider = {magnitudeToCollider}, actual hearing range: {gunFireNoiseLevel * (enemyCollider.GetComponent<EnemyMovement>().hearingRange/10)}");
 
             // des te beter de enemy kan horen, des te meer ze tot de maximum zitten van de noise level
             if (magnitudeToCollider <= gunFireNoiseLevel * (enemyCollider.GetComponent<EnemyMovement>().hearingRange))

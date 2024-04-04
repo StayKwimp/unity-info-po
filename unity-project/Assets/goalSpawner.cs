@@ -10,11 +10,14 @@ public class goalSpawner : MonoBehaviour
     [Header("Spawnpoints")]
     public GameObject spawnerObject;
     public float respawnDelay;
+    // if spawnGoalOnGameStart is false, a goal will be spawned after respawnDelay amount of seconds
+    public bool spawnGoalOnGameStart;
 
     // Start is called before the first frame update
     void Start()
     {
-        Instantiate(spawnerObject, transform.position, Quaternion.identity);
+        if (spawnGoalOnGameStart) SpawnObject();
+        else SpawnGoal();
     }
 
     // Update is called once per frame
@@ -25,13 +28,13 @@ public class goalSpawner : MonoBehaviour
     public void SpawnGoal()
     {
         //ik weet dat dit heel erg lelijk is.
-        Debug.Log("spawngoal works");
+        // Debug.Log("spawngoal works");
         Invoke("SpawnObject", respawnDelay);
     }
 
     private void SpawnObject()
     {
-        Debug.Log("spawn new object works");
+        // Debug.Log("spawn new object works");
         Instantiate(spawnerObject, transform.position, Quaternion.identity);
     }
 

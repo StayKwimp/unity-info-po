@@ -99,12 +99,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   healthAddition: 30
   healthRemoval: 50
-  goalDamageTimer: 150
+  goalDamageTimer: 200
   objectType: goal
   countdownDisplayName: CountdownDisplay1
   objectiveText: Section 8
   enemySpawnerMasterName: NewEnemySpawnerMaster
   newSpawnerIndex: 1
+  enableDoor: 1
+  doorName: MetroEntranceDoor
 --- !u!64 &-9114682391420816084
 MeshCollider:
   m_ObjectHideFlags: 0

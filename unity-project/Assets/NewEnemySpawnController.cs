@@ -22,7 +22,7 @@ public class NewEnemySpawnController : MonoBehaviour
             for (int i = 0; i < subSpawnControllers.Length; i++) {
                 if (i != activeSubspawnerIndex) { 
                     subSpawnControllers[i].GetComponent<SubSpawnController>().Deactivate();
-                    UnityEngine.Debug.Log($"Changed spawner index {i} to inactive");
+                    // UnityEngine.Debug.Log($"Changed spawner index {i} to inactive");
                 }
             }
         
@@ -32,7 +32,7 @@ public class NewEnemySpawnController : MonoBehaviour
             // als de array out of bounds is, zet dan elke spawner op inactief
             for (int i = 0; i < subSpawnControllers.Length; i++) {
                 subSpawnControllers[i].GetComponent<SubSpawnController>().Deactivate();
-                UnityEngine.Debug.Log($"Changed spawner index {i} to inactive");
+                // UnityEngine.Debug.Log($"Changed spawner index {i} to inactive");
             }
         }
     }

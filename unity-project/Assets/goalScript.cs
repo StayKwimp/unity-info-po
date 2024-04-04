@@ -1,5 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using static DoorScript;
+using static NewEnemySpawnController;
+using static PlayerMovement;
 using UnityEngine;
 using TMPro;
 
@@ -7,6 +10,7 @@ public class goalScript : MonoBehaviour
 {
 
     [Header("Health settings")]
+    public int maxHealth = 200;
     public int healthAddition;
     public int healthRemoval;
     public float goalDamageTimer;
@@ -26,6 +30,11 @@ public class goalScript : MonoBehaviour
     public string enemySpawnerMasterName;
     public int newSpawnerIndex;
 
+    [Header("Doors")]
+    public bool enableDoor;
+    public string doorName;
+    private DoorScript doorObj;
+
     
 
     void Awake() {
@@ -36,7 +45,11 @@ public class goalScript : MonoBehaviour
     void Start()
     {
         countdownDisplay = GameObject.Find(countdownDisplayName).GetComponent<TextMeshProUGUI>();
+        if (enableDoor) doorObj = GameObject.Find(doorName).GetComponent<DoorScript>();
         Invoke("Lowermaxhealth", goalDamageTimer);
+
+        // close door
+        if (enableDoor) doorObj.CloseDoor();
     }
 
     // Update is called once per frame
@@ -59,10 +72,10 @@ public class goalScript : MonoBehaviour
 
 
 
-                if(GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth < 200)
+                if(GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth < maxHealth)
                 {
                     GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth += healthAddition;
-                    if (GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth > 200) GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth = 200;
+                    if (GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth > maxHealth) GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth = maxHealth;
                     GameObject.Find("GoalSpawner")?.GetComponent<goalSpawner>()?.SpawnGoal();
                 }
                 else{
@@ -77,10 +90,10 @@ public class goalScript : MonoBehaviour
 
 
 
-                if(GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth < 200)
+                if(GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth < maxHealth)
                 {
                     GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth += healthAddition;
-                    if (GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth > 200) GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth = 200;
+                    if (GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth > maxHealth) GameObject.Find("Player").GetComponent<PlayerMovement>().maxHealth = maxHealth;
                     GameObject.Find("GoalSpawner2")?.GetComponent<goalSpawner>()?.SpawnGoal();
                 }
                 else {
@@ -96,6 +109,10 @@ public class goalScript : MonoBehaviour
 
             // change SubspawnerIndex of the enemy spawn controller
             GameObject.Find(enemySpawnerMasterName).GetComponent<NewEnemySpawnController>().activeSubspawnerIndex = newSpawnerIndex;
+
+
+            // open door
+            if (enableDoor) doorObj.OpenDoor();
 
 
 
@@ -122,6 +139,15 @@ public class goalScript : MonoBehaviour
         if (countdownDisplay != null){
             countdownDisplay.SetText($"{objectiveText}: ** Decayed **");
         }
+
+
+        // change SubspawnerIndex of the enemy spawn controller
+        GameObject.Find(enemySpawnerMasterName).GetComponent<NewEnemySpawnController>().activeSubspawnerIndex = newSpawnerIndex;
+
+        // open door
+        if (enableDoor) doorObj.OpenDoor();
+
+
         Destroy(gameObject);
     }
 }

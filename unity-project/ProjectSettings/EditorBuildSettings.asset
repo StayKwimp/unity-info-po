@@ -9,8 +9,8 @@ EditorBuildSettings:
     path: Assets/Scenes/Mainmenu.unity
     guid: f842eacfbf69bbd40820f2c36a0dcdff
   - enabled: 1
-    path: Assets/Scenes/playable map v1.unity
-    guid: 7e7f85ec0329dd746a52369fbb0f007d
+    path: Assets/Scenes/Map v2.unity
+    guid: d8410d99e2f3bab48b0fc95670662dca
   - enabled: 1
     path: Assets/Scenes/Deathmenu.unity
     guid: e436daf47b1cd704792d39482d30dd12

@@ -81,6 +81,7 @@ public class PlayerMovement : MonoBehaviour
 
 
     [Header("Player Stats")]
+    public bool invincible = false;
     public int health;
     public int maxHealth;
     public int armor;
@@ -154,7 +155,6 @@ public class PlayerMovement : MonoBehaviour
 
 
     private void Update() {
-        health = 20000;
         // Debug.Log($"GrenadeAnimationProgress: {grenadeAnimationProgress}");
         // ground check d.m.v. een raycast naar beneden van de helft van de spelerhoogte plus 0.2
         // de layermask whatIsGround wordt gebruikt in unity om te kijken welke objects allemaal als
@@ -659,17 +659,20 @@ public class PlayerMovement : MonoBehaviour
 
 
     public void TakeDamage(int damage) {
-        health -= damage;
-        secondsPastTakingDamage = 0f;
+        if (!invincible) {
+            health -= damage;
+            secondsPastTakingDamage = 0f;
 
-        if (health <= 0) {
-            // vul hier iets van een game over in ofzo
-            string currentSceneName = SceneManager.GetActiveScene().name;
-            SceneManager.LoadScene(currentSceneName);
 
-            // uncomment dit hieronder en comment dit hierboven voor full releases!
+            if (health <= 0) {
+                // vul hier iets van een game over in ofzo
+                string currentSceneName = SceneManager.GetActiveScene().name;
+                SceneManager.LoadScene(currentSceneName);
 
-            SceneManager.LoadScene("Deathmenu");
+                // uncomment dit hieronder en comment dit hierboven voor full releases!
+
+                SceneManager.LoadScene("Deathmenu");
+            }
         }
     }
 }
