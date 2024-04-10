@@ -1,18 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using static PlayerGun;
+using static weaponSwitching;
 using UnityEngine;
 
 public class ReticleEnlargement : MonoBehaviour
 {
     [Header("Definitions")]
-    public string gunObjName;
+    public string[] gunObjNames;
     private PlayerGun gunObj;
 
     [Header("Reticle")]
     public float reticleSizeMultiplier;
     public float minimumSize;
     public Component moveComponent;
+    public weaponSwitching weaponSwitchingObj;
+    private int currentWeaponInt = 0;
 
 
 
@@ -28,13 +31,21 @@ public class ReticleEnlargement : MonoBehaviour
     void Awake()
     {
         // assign the gun object
-        gunObj = GameObject.Find(gunObjName)?.GetComponent<PlayerGun>();
-        if (gunObj == null) UnityEngine.Debug.LogError($"Cannot find PlayerGun object of name {gunObjName}");
+        currentWeaponInt = weaponSwitchingObj.selectedWeapon;
+
+        gunObj = GameObject.Find(gunObjNames[currentWeaponInt])?.GetComponent<PlayerGun>();
+        if (gunObj == null) UnityEngine.Debug.LogError($"Cannot find PlayerGun object of name {gunObjNames[currentWeaponInt]}");
     }
 
     void Update()
     {
-        if (gunObj != null) {
+        // get new gun obj
+        currentWeaponInt = weaponSwitchingObj.selectedWeapon;
+        gunObj = GameObject.Find(gunObjNames[currentWeaponInt])?.GetComponent<PlayerGun>();
+        if (gunObj == null) UnityEngine.Debug.LogError($"Cannot find PlayerGun object of name {gunObjNames[currentWeaponInt]}");
+
+
+        else {
             var ADS = gunObj.ADSEnabled;
             float reticleSize;
 
@@ -60,12 +71,5 @@ public class ReticleEnlargement : MonoBehaviour
 
             // UnityEngine.Debug.Log($"reticleSize: {reticleSize}, localPosition: {transform.localPosition}");
         }
-    }
-
-
-    // alvast hier voor het switchen van guns, heeft nog verdere implementatie nodig
-    public void SetNewGun(string name) {
-        gunObjName = name;
-        gunObj = GameObject.Find(gunObjName)?.GetComponent<PlayerGun>();
     }
 }

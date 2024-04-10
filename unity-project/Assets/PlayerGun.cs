@@ -96,6 +96,8 @@ public class PlayerGun : MonoBehaviour
 
     [Header("Sounds")]
     public GameObject audioManager;
+    public string shootSoundName;
+    public string reloadSoundName;
 
 
     [Header("Debug")]
@@ -423,7 +425,7 @@ public class PlayerGun : MonoBehaviour
         ApplyRecoil();
 
         // speel geluid af
-        PlaySound("AK fire");
+        PlaySound(shootSoundName);
 
 
         // zorg dat enemies binnen een bepaalde radius je opmerken
@@ -459,7 +461,7 @@ public class PlayerGun : MonoBehaviour
         Invoke("ReloadFinished", reloadTime);
 
         // speel geluid af
-        PlaySound("AK reload");
+        PlaySound(reloadSoundName);
     }
 
     private void ReloadFinished() {
